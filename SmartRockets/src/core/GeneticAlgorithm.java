@@ -4,7 +4,10 @@
  */
 package core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Comparator;
 import java.util.Random;
 
 /**
@@ -20,16 +23,18 @@ public class GeneticAlgorithm {
     private Target target;
     private int currentGeneration;
     private double bestFitnessSoFar;
-    
+    private List<Rectangle> obstacles;
+
     public GeneticAlgorithm(int populationSize, int numGenerations, double mutationRate) {
         this.populationSize = populationSize;
         this.numGenerations = numGenerations;
         this.mutationRate = mutationRate;
         this.population = new Rocket[populationSize];
+        this.target = new Target(400, 50);
+        this.obstacles = new ArrayList<>();
         this.currentGeneration = 0;
         this.bestFitnessSoFar = 0;
-        this.target = new Target(400, 50); // Center top of the screen
-        intializePopulation();
+        initializePopulation();
     }
 
     public void evolveOneGeneration() {
@@ -63,7 +68,7 @@ public class GeneticAlgorithm {
 
             // Print the fitness of the fittest rocket at each generation
             System.out.println("Generation " + (currentGeneration + 1) + ": Fitness = " + getFittestRocket().getFitness());
-            
+
             double currentBestFitness = getFittestRocket().getFitness();
             if (currentBestFitness > bestFitnessSoFar) {
                 bestFitnessSoFar = currentBestFitness;
@@ -134,12 +139,11 @@ public class GeneticAlgorithm {
         }
     }
 
-    private double evaluateFitness(Rocket rocket) {
-        // Calculate the fitness of the rocket
-        double distance = Math.sqrt(Math.pow(rocket.getX() - target.getX(), 2) + Math.pow(rocket.getY() - target.getY(), 2));
-        return 1 / distance;
-    }
-
+//    private double evaluateFitness(Rocket rocket) {
+//        // Calculate the fitness of the rocket
+//        double distance = Math.sqrt(Math.pow(rocket.getX() - target.getX(), 2) + Math.pow(rocket.getY() - target.getY(), 2));
+//        return 1 / distance;
+//    }
     private Rocket getFittestRocket(Rocket[] rockets) {
         // Sort the rockets by fitness in descending order
         Rocket[] sortedRockets = rockets.clone();
@@ -149,16 +153,7 @@ public class GeneticAlgorithm {
         return sortedRockets[0];
     }
 
-    public Rocket getFittestRocket() {
-        // Sort the population by fitness in descending order
-        Rocket[] sortedPopulation = population.clone();
-        Arrays.sort(sortedPopulation, (a, b) -> Double.compare(b.getFitness(), a.getFitness()));
-
-        // Return the fittest rocket
-        return sortedPopulation[0];
-    }
-
-    private void intializePopulation() {
+    private void initializePopulation() {
         // Initialize rockets with random positions and velocities
         Random random = new Random();
         for (int i = 0; i < populationSize; i++) {
@@ -189,21 +184,6 @@ public class GeneticAlgorithm {
         return populationSize;
     }
 
-    public void setPopulationSize(int populationSize) {
-        // Set Population Size
-        this.populationSize = populationSize;
-    }
-
-    public double getMutationRate() {
-        // Return the population size
-        return mutationRate;
-    }
-
-    public void setMutationRate(double mutationRate) {
-        // Set Population Size
-        this.mutationRate = mutationRate;
-    }
-    
     public int getCurrentGeneration() {
         return currentGeneration;
     }
@@ -215,4 +195,57 @@ public class GeneticAlgorithm {
     public double getBestFitnessSoFar() {
         return bestFitnessSoFar;
     }
+
+    public Rocket getFittestRocket() {
+        return Arrays.stream(population).max(Comparator.comparingDouble(Rocket::getFitness)).orElse(null);
+    }
+
+    public void setObstacles(List<Rectangle> obstacles) {
+        this.obstacles = obstacles;
+    }
+
+    public double getAverageFitness() {
+        return Arrays.stream(population).mapToDouble(Rocket::getFitness).average().orElse(0);
+    }
+
+    public int getNumGenerations() {
+        return numGenerations;
+    }
+
+    public double getMutationRate() {
+        return mutationRate;
+    }
+
+    public void setPopulationSize(int size) {
+        this.populationSize = size;
+        // Reinitialize population with new size
+        this.population = new Rocket[size];
+        initializePopulation();
+    }
+
+    public void setMutationRate(double rate) {
+        this.mutationRate = rate;
+    }
+
+    private double evaluateFitness(Rocket rocket) {
+        if (obstacles != null) {
+            for (Rectangle obstacle : obstacles) {
+                if (rocket.getX() >= obstacle.x && rocket.getX() <= obstacle.x + obstacle.width
+                        && rocket.getY() >= obstacle.y && rocket.getY() <= obstacle.y + obstacle.height) {
+                    return 0; // Rocket collided with obstacle
+                }
+            }
+        }
+
+        // Calculate fitness based on distance to target
+        double distance = Math.sqrt(Math.pow(rocket.getX() - target.getX(), 2) + Math.pow(rocket.getY() - target.getY(), 2));
+        return 1 / distance;
+    }
+
+    public void reset() {
+        this.currentGeneration = 0;
+        this.bestFitnessSoFar = 0;
+        initializePopulation();
+    }
+
 }
