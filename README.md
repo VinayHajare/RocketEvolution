@@ -1,17 +1,5 @@
-Here are a few suggestions for a project name:
 
-1. **Rocket Evolution**: This name plays off the idea of rockets evolving over time through the genetic algorithm.
-2. **Survival of the Fittest Rockets**: This name incorporates the concept of Darwin's survival of the fittest, which is a key component of the genetic algorithm.
-3. **Genetic Rocketry**: This name highlights the use of genetic algorithms in the project.
-4. **Rocket Darwin**: This name incorporates the concept of Darwin's survival of the fittest and adds a fun twist with the word "Rocket".
-
-Here's a possible "About" section for your Git repo:
-
-"**Rocket Evolution**: A simulation of rocket evolution using genetic algorithms. This project demonstrates the concept of survival of the fittest, where the fittest rockets are selected to reproduce and create new offspring. The genetic algorithm is used to evolve the rockets over time, resulting in a population of rockets that are better adapted to their environment."
-
-Here's a possible Readme.md file with emojis:
-
-## Rocket Evolution 🚀🔥
+# Rocket Evolution 🚀🔥
 
 ## About 🗣️
 
