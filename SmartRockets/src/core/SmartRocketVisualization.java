@@ -5,7 +5,6 @@
 package core;
 
 import javafx.application.Application;
-import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -18,7 +17,10 @@ import javafx.scene.chart.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.layout.Priority;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
 
 /**
  *
@@ -37,10 +39,11 @@ public class SmartRocketVisualization extends Application {
     private List<Rectangle> obstacles = new ArrayList<>();
     private Canvas canvas;
     private GraphicsContext gc;
+    ProgressBar progressBar;
 
     @Override
     public void start(Stage primaryStage) {
-        ga = new GeneticAlgorithm(100, 1000, 0.01);
+        ga = new GeneticAlgorithm(15, 100, 0.01);
         initializeObstacles();
 
         canvas = new Canvas(WIDTH, HEIGHT);
@@ -56,28 +59,11 @@ public class SmartRocketVisualization extends Application {
         HBox.setHgrow(canvas, Priority.ALWAYS);
 
         Scene scene = new Scene(root);
-
         primaryStage.setScene(scene);
         primaryStage.setTitle("Smart Rocket Visualization");
         primaryStage.show();
 
-        drawSimulation();
-
-        new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (isRunning.get() && now - lastUpdateTime >= updateInterval) {
-                    if (!ga.isEvolutionComplete()) {
-                        ga.evolveOneGeneration();
-                        drawSimulation();
-                        updateFitnessChart();
-                    } else {
-                        isRunning.set(false);
-                    }
-                    lastUpdateTime = now;
-                }
-            }
-        }.start();
+        drawSimulation(); // Initial draw
     }
 
     private void initializeObstacles() {
@@ -87,19 +73,37 @@ public class SmartRocketVisualization extends Application {
     }
 
     private VBox createControls() {
+
         Button startStopButton = new Button("Start");
+        Button resetButton = new Button("Reset");
+
+        AtomicReference<Task<Void>> currentTask = new AtomicReference<>();
+
         startStopButton.setOnAction(e -> {
-            isRunning.set(!isRunning.get());
-            startStopButton.setText(isRunning.get() ? "Pause" : "Start");
+            if (!isRunning.get()) {
+                isRunning.set(true);
+                startStopButton.setText("Pause");
+                Task<Void> task = createEvolutionTask();
+                currentTask.set(task);
+                new Thread(task).start();
+            } else {
+                isRunning.set(false);
+                startStopButton.setText("Start");
+                if (currentTask.get() != null) {
+                    currentTask.get().cancel();
+                }
+            }
         });
 
-        Button resetButton = new Button("Reset");
         resetButton.setOnAction(e -> {
+            if (currentTask.get() != null) {
+                currentTask.get().cancel();
+            }
+            isRunning.set(false);
+            startStopButton.setText("Start");
             ga.reset();
             bestFitnessSeries.getData().clear();
             avgFitnessSeries.getData().clear();
-            isRunning.set(false);
-            startStopButton.setText("Start");
             drawSimulation();
         });
 
@@ -164,8 +168,9 @@ public class SmartRocketVisualization extends Application {
     }
 
     private void updateFitnessChart() {
-        bestFitnessSeries.getData().add(new XYChart.Data<>(ga.getCurrentGeneration(), ga.getBestFitnessSoFar()));
-        avgFitnessSeries.getData().add(new XYChart.Data<>(ga.getCurrentGeneration(), ga.getAverageFitness()));
+        int generation = ga.getCurrentGeneration();
+        bestFitnessSeries.getData().add(new XYChart.Data<>(generation, ga.getBestFitnessSoFar()));
+        avgFitnessSeries.getData().add(new XYChart.Data<>(generation, ga.getAverageFitness()));
     }
 
     private void drawSimulation() {
@@ -191,7 +196,7 @@ public class SmartRocketVisualization extends Application {
             rocket.getTrail().draw(gc);
 
             // Draw rocket
-            gc.setFill(rocket == bestRocket ? Color.GREEN : Color.BLUE);
+            gc.setFill(rocket == bestRocket ? Color.CRIMSON : Color.BLUE);
             gc.save();
             gc.translate(rocket.getX(), rocket.getY());
             gc.rotate(Math.toDegrees(rocket.getAngle()));
@@ -204,6 +209,26 @@ public class SmartRocketVisualization extends Application {
         gc.fillText("Generation: " + ga.getCurrentGeneration(), 10, 20);
         gc.fillText("Best Fitness: " + String.format("%.4f", ga.getBestFitnessSoFar()), 10, 40);
         gc.fillText("Average Fitness: " + String.format("%.4f", ga.getAverageFitness()), 10, 60);
+        gc.fillText("Successful Rockets: " + ga.getSuccessfulRocketsCount(), 10, 80);
+    }
+
+    private Task<Void> createEvolutionTask() {
+        return new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                while (!ga.isEvolutionComplete() && !isCancelled()) {
+                    ga.evolveOneGeneration();
+
+                    Platform.runLater(() -> {
+                        drawSimulation();
+                        updateFitnessChart();
+                    });
+
+                    Thread.sleep(16); // Approximately 60 FPS
+                }
+                return null;
+            }
+        };
     }
 
     public static void main(String[] args) {
