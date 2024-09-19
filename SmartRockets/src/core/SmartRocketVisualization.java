@@ -196,11 +196,24 @@ public class SmartRocketVisualization extends Application {
             rocket.getTrail().draw(gc);
 
             // Draw rocket
-            gc.setFill(rocket == bestRocket ? Color.CRIMSON : Color.BLUE);
+            gc.setFill(rocket == bestRocket ? Color.GOLD : Color.BLUE);
             gc.save();
             gc.translate(rocket.getX(), rocket.getY());
             gc.rotate(Math.toDegrees(rocket.getAngle()));
-            gc.fillRect(-Rocket.WIDTH / 2, -Rocket.HEIGHT / 2, Rocket.WIDTH, Rocket.HEIGHT);
+
+            // Draw triangular rocket
+            double rocketHeight = 20; // Adjust this value to change the size of the rocket
+            double rocketWidth = 10;  // Adjust this value to change the width of the rocket base
+
+            double[] xPoints = {0, -rocketWidth / 2, rocketWidth / 2};
+            double[] yPoints = {-rocketHeight / 2, rocketHeight / 2, rocketHeight / 2};
+
+            gc.fillPolygon(xPoints, yPoints, 3);
+
+            // Draw a small red thruster at the back of the rocket
+            gc.setFill(Color.RED);
+            gc.fillOval(-rocketWidth / 4, rocketHeight / 2, rocketWidth / 2, rocketHeight / 4);
+
             gc.restore();
         }
 

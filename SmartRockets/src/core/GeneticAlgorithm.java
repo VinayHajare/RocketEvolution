@@ -83,62 +83,7 @@ public class GeneticAlgorithm {
         }
     }
 
-//    public void evolveOneGeneration() {
-//        if (currentGeneration < numGenerations) {
-//            boolean allRocketsInactive = Arrays.stream(population).noneMatch(Rocket::isActive);
-//
-//            if (allRocketsInactive) {
-//                // Evaluation
-//                for (int j = 0; j < populationSize; j++) {
-//                    population[j].setFitness(evaluateFitness(population[j]));
-//                }
-//
-//                // Elitism
-//                Rocket[] eliteRockets = getEliteRockets(population, 10);
-//
-//                // Tournament Selection
-//                Rocket[] selectedRockets = selectRocketsUsingTournament(population, populationSize / 2);
-//
-//                // SBX Crossover
-//                Rocket[] offspring = sbxCrossover(selectedRockets, populationSize / 2);
-//
-//                // Polynomial Mutation
-//                for (int j = 0; j < offspring.length; j++) {
-//                    polynomialMutation(offspring[j]);
-//                }
-//
-//                // Replacement
-//                replaceLeastFitRockets(population, offspring, eliteRockets);
-//
-//                // Update best fitness
-//                double currentBestFitness = getFittestRocket().getFitness();
-//                if (currentBestFitness > bestFitnessSoFar) {
-//                    bestFitnessSoFar = currentBestFitness;
-//                }
-//
-//                // Reset all rockets for the next generation
-//                for (Rocket rocket : population) {
-//                    rocket.reset();
-//                }
-//
-//                successfulRocketsCount = 0;
-//                currentGeneration++;
-//            } else {
-//                // Update positions of active rockets
-//                for (Rocket rocket : population) {
-//                    if (rocket.isActive()) {
-//                        rocket.updatePosition();
-//                        if (rocket.hasReachedTarget(target)) {
-//                            successfulRocketsCount++;
-//                            rocket.setActive(false);
-//                        } else if (rocket.hasCollided(obstacles) || rocket.isOutOfBounds()) {
-//                            rocket.setActive(false);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+
     private Rocket[] getEliteRockets(Rocket[] population, int numEliteRockets) {
         Rocket[] sortedPopulation = population.clone();
         Arrays.sort(sortedPopulation, (a, b) -> Double.compare(b.getFitness(), a.getFitness()));

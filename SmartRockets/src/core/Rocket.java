@@ -5,6 +5,7 @@
 package core;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -20,9 +21,10 @@ public class Rocket {
     private double fitness;
     private boolean active;
     private Trail trail;
+    private final Random random = new Random();
 
-    public static final int WIDTH = 4;
-    public static final int HEIGHT = 10;
+    public static final double HEIGHT = 20; // Match the rocketHeight in drawSimulation
+    public static final double WIDTH = 10;  // Match the rocketWidth in drawSimulation
 
     private static final double INITIAL_SPEED = 2.0;
 
@@ -110,9 +112,12 @@ public class Rocket {
     }
 
     public boolean hasCollided(List<Rectangle> obstacles) {
+        // Update collision detection for triangular shape
         for (Rectangle obstacle : obstacles) {
             if (x >= obstacle.x && x <= obstacle.x + obstacle.width
                     && y >= obstacle.y && y <= obstacle.y + obstacle.height) {
+                // Simple bounding box collision detection
+                // For more precise collision, you'd need to implement triangle-rectangle collision detection
                 return true;
             }
         }
@@ -131,15 +136,6 @@ public class Rocket {
     public void reset() {
         x = 400; // Starting x position
         y = 600; // Starting y position
-
-        // Generate a random angle between 0 and 180 degrees (converted to radians)
-        double randomAngle = Math.toRadians(Math.random() * 180);
-
-        // Set initial velocity components based on the random angle and INITIAL_SPEED
-        vx = INITIAL_SPEED * Math.cos(randomAngle);
-        vy = -INITIAL_SPEED * Math.sin(randomAngle);
-
-        angle = randomAngle;
         active = true;
         if (trail == null) {
             trail = new Trail();
