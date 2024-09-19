@@ -25,7 +25,7 @@ It is inspired by Charles Darwin's theory of Natural Selection.
 6. **Replacement**: The least fit rockets are replaced with the new offspring.
 7. **Repeat**: The process is repeated over multiple generations.
   
-<p align="center"><img src="rockets.gif" width=500></p>
+<p align="center"><img src="Demo.gif" width=500></p>
 
 ## Features 🎉
 
